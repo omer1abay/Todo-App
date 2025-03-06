@@ -10,6 +10,7 @@ public record CreateTodoItemCommand : IRequest<int>
     public int ListId { get; init; }
 
     public string? Title { get; init; }
+    public string? BackgroundColor { get; init; }
 }
 
 public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemCommand, int>
@@ -27,7 +28,8 @@ public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemComman
         {
             ListId = request.ListId,
             Title = request.Title,
-            Done = false
+            Done = false,
+            BackgroundColor = request.BackgroundColor ?? "#FFFFFF"
         };
 
         entity.AddDomainEvent(new TodoItemCreatedEvent(entity));
