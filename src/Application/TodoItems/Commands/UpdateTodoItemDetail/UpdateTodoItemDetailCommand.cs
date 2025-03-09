@@ -47,6 +47,7 @@ public class UpdateTodoItemDetailCommandHandler : IRequestHandler<UpdateTodoItem
         {
             entity.TodoItemTagsList.Except(todoItemTags.Where(x => request.Tags.Contains(x.TagId))).ToList().ForEach(tag => entity.TodoItemTagsList.Remove(tag));
             entity.TodoItemTagsList.AddRange(request.Tags.Select(tagId => new TodoItemTags { TagId = tagId, TodoItemId = request.Id }).ToList());
+            entity.TodoItemTagsList = entity.TodoItemTagsList.DistinctBy(x => x.TagId).ToList();
         }
 
         entity.ListId = request.ListId;
