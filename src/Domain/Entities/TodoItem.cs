@@ -14,6 +14,8 @@ public class TodoItem : BaseAuditableEntity
 
     public string? BackgroundColor { get; set; } = "#FFFFFF";
 
+    //public bool IsActive { get; set; } = true;
+
     private bool _done;
     public bool Done
     {
@@ -29,5 +31,6 @@ public class TodoItem : BaseAuditableEntity
         }
     }
 
-    public TodoList List { get; set; } = null!;
+    public virtual TodoList? List { get; set; }
+    public virtual List<TodoItemTags> TodoItemTagsList { get; set; } = new();
 }

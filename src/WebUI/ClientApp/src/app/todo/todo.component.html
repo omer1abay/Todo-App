@@ -37,8 +37,21 @@
           <i class="bi bi-three-dots-vertical"></i>
         </button>
       </div>
+      <!-- Search and Tag Filter Section -->
+      <div class="mb-3">
+        <label class="form-label">Search:</label>
+        <input type="text" class="form-control mb-3" [(ngModel)]="searchQuery" (ngModelChange)="filterItems()" placeholder="Search in titles, notes, and tags...">
+        
+        <label class="form-label">Filter by Tags:</label>
+        <div class="d-flex gap-2 align-items-center">
+          <select multiple class="form-control flex-grow-1" [(ngModel)]="selectedTags" (change)="filterItems()">
+            <option [ngValue]="tag.id" *ngFor="let tag of tags">{{ tag.name }}</option>
+          </select>
+          <button class="btn btn-outline-secondary" (click)="clearTagFilter()">Clear</button>
+        </div>
+      </div>
       <ul id="todo-items" class="list-group mb-2">
-        <li class="list-group-item" *ngFor="let item of selectedList.items; index as i" [style.background-color]="item.backgroundColor">
+        <li class="list-group-item" *ngFor="let item of filteredItems; index as i" [style.background-color]="item.backgroundColor">
           <div class="d-flex">
             <div class="todo-item-checkbox">
               <input type="checkbox" [(ngModel)]="item.done" (change)="updateItem(item)" />
@@ -123,10 +136,26 @@
         <select class="form-control" formControlName="priority">
           <option [ngValue]="level.value" *ngFor="let level of priorityLevels">{{ level.name }}</option>
         </select>
+      </div> 
+      <div class="form-group">
+        <label for="tags">Tags</label>
+        <div class="d-flex gap-2">
+          <select multiple="true" class="form-control flex-grow-1" formControlName="tags" style="height: auto; white-space: nowrap; overflow-x: auto;">
+           <option [ngValue]="level.id" *ngFor="let level of tags">{{ level.name }}</option>
+          </select>
+          <button class="btn btn-primary" (click)="showNewTagInput()">Add New</button>
+        </div>
+        <div class="mt-2" *ngIf="showTagInput">
+          <div class="d-flex gap-2">
+            <input type="text" class="form-control" [(ngModel)]="newTagName" placeholder="Enter new tag..." [ngModelOptions]="{standalone: true}">
+            <button class="btn btn-success" (click)="saveNewTag()">Save</button>
+            <button class="btn btn-secondary" (click)="cancelNewTag()">Cancel</button>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label for="note">Note</label>
-        <textarea id="note" class="form-control" rows="3" formControlName="note"></textarea>
+        <textarea id="note" class="form-control" rows="4" formControlName="note"></textarea>
       </div>
     </form>
     <div *ngIf="debug">
