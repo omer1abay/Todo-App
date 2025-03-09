@@ -1363,6 +1363,7 @@ export abstract class BaseAuditableEntity extends BaseEntity implements IBaseAud
     createdBy?: string | undefined;
     lastModified?: Date | undefined;
     lastModifiedBy?: string | undefined;
+    isActive?: boolean;
 
     constructor(data?: IBaseAuditableEntity) {
         super(data);
@@ -1375,6 +1376,7 @@ export abstract class BaseAuditableEntity extends BaseEntity implements IBaseAud
             this.createdBy = _data["createdBy"];
             this.lastModified = _data["lastModified"] ? new Date(_data["lastModified"].toString()) : <any>undefined;
             this.lastModifiedBy = _data["lastModifiedBy"];
+            this.isActive = _data["isActive"];
         }
     }
 
@@ -1389,6 +1391,7 @@ export abstract class BaseAuditableEntity extends BaseEntity implements IBaseAud
         data["createdBy"] = this.createdBy;
         data["lastModified"] = this.lastModified ? this.lastModified.toISOString() : <any>undefined;
         data["lastModifiedBy"] = this.lastModifiedBy;
+        data["isActive"] = this.isActive;
         super.toJSON(data);
         return data;
     }
@@ -1399,6 +1402,7 @@ export interface IBaseAuditableEntity extends IBaseEntity {
     createdBy?: string | undefined;
     lastModified?: Date | undefined;
     lastModifiedBy?: string | undefined;
+    isActive?: boolean;
 }
 
 export class TodoItem extends BaseAuditableEntity implements ITodoItem {

@@ -830,6 +830,9 @@
               "lastModifiedBy": {
                 "type": "string",
                 "nullable": true
+              },
+              "isActive": {
+                "type": "boolean"
               }
             }
           }

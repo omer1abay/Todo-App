@@ -275,12 +275,13 @@ export class TodoComponent implements OnInit {
     if (item.id === 0) {
       const itemIndex = this.selectedList.items.indexOf(this.selectedItem);
       this.selectedList.items.splice(itemIndex, 1);
+      this.filteredItems = this.filteredItems.filter(t => t !== item);
     } else {
       this.itemsClient.delete(item.id).subscribe(
-        () =>
-        (this.selectedList.items = this.selectedList.items.filter(
-          t => t.id !== item.id
-        )),
+        () => {
+          this.selectedList.items = this.selectedList.items.filter(t => t.id !== item.id);
+          this.filteredItems = this.filteredItems.filter(t => t.id !== item.id);
+        },
         error => console.error(error)
       );
     }
@@ -341,6 +342,4 @@ export class TodoComponent implements OnInit {
     this.newTagName = '';
     this.showTagInput = false;
   }
-}
-
 }
