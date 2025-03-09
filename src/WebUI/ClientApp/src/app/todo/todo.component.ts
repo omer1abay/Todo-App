@@ -6,7 +6,8 @@ import {
   TodoListDto, TodoItemDto, PriorityLevelDto,
   CreateTodoListCommand, UpdateTodoListCommand,
   CreateTodoItemCommand, UpdateTodoItemDetailCommand,
-  TagDto, CreateTagsCommand, TagsClient
+  TagDto, CreateTagsCommand, TagsClient,
+  TodoItemTags
 } from '../web-api-client';
 
 @Component({
@@ -189,8 +190,23 @@ export class TodoComponent implements OnInit {
           this.lists[listIndex].items.push(this.selectedItem);
         }
 
+        // Update the selected item's properties including tags
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
+        this.selectedItem.todoItemTagsList = item.tags?.map(tagId => ({
+          tagId: tagId,
+          todoItemId: this.selectedItem.id
+        } as TodoItemTags)) || [];
+
+        // Update the item in both lists and filtered items
+        const itemInList = this.selectedList.items.find(i => i.id === this.selectedItem.id);
+        if (itemInList) {
+          itemInList.todoItemTagsList = this.selectedItem.todoItemTagsList;
+        }
+
+        // Refresh the filtered items to reflect tag changes
+        this.filterItems();
+
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
       },
