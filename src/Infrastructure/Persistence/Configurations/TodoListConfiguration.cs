@@ -14,5 +14,7 @@ public class TodoListConfiguration : IEntityTypeConfiguration<TodoList>
 
         builder
             .OwnsOne(b => b.Colour);
+
+        builder.HasQueryFilter(p => p.IsActive); // This is a global query filter
     }
 }
