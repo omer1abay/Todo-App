@@ -5,7 +5,8 @@ import {
   TodoListsClient, TodoItemsClient,
   TodoListDto, TodoItemDto, PriorityLevelDto,
   CreateTodoListCommand, UpdateTodoListCommand,
-  CreateTodoItemCommand, UpdateTodoItemDetailCommand
+  CreateTodoItemCommand, UpdateTodoItemDetailCommand,
+  TagDto, CreateTagsCommand, TagsClient
 } from '../web-api-client';
 
 @Component({
@@ -22,6 +23,12 @@ export class TodoComponent implements OnInit {
   priorityLevels: PriorityLevelDto[];
   selectedList: TodoListDto;
   selectedItem: TodoItemDto;
+  searchQuery: string = '';
+  selectedTags: number[];
+  tags: TagDto[];
+  filteredItems: TodoItemDto[] = [];
+  showTagInput: boolean = false;
+  newTagName: string = '';
   newListEditor: any = {};
   listOptionsEditor: any = {};
   newListModalRef: BsModalRef;
@@ -32,7 +39,8 @@ export class TodoComponent implements OnInit {
     id: [null],
     listId: [null],
     priority: [''],
-    note: ['']
+    note: [''],
+    tags: [[]]
   });
 
 
@@ -40,7 +48,8 @@ export class TodoComponent implements OnInit {
     private listsClient: TodoListsClient,
     private itemsClient: TodoItemsClient,
     private modalService: BsModalService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private tagsClient: TagsClient
   ) { }
 
   ngOnInit(): void {
@@ -48,8 +57,10 @@ export class TodoComponent implements OnInit {
       result => {
         this.lists = result.lists;
         this.priorityLevels = result.priorityLevels;
+        this.tags = result.tags;
+        console.log(this.lists);
         if (this.lists.length) {
-          this.selectedList = this.lists[0];
+          this.selectList(this.lists[1]);
         }
       },
       error => console.error(error)
@@ -59,6 +70,14 @@ export class TodoComponent implements OnInit {
   // Lists
   remainingItems(list: TodoListDto): number {
     return list.items.filter(t => !t.done).length;
+  }
+
+  selectList(list: TodoListDto): void {
+    this.selectedList = list;
+    this.selectedTags = [];
+    this.searchQuery = '';
+    this.filteredItems = [...list.items];
+    this.filterItems();
   }
 
   showNewListModal(template: TemplateRef<any>): void {
@@ -138,7 +157,16 @@ export class TodoComponent implements OnInit {
   // Items
   showItemDetailsModal(template: TemplateRef<any>, item: TodoItemDto): void {
     this.selectedItem = item;
-    this.itemDetailsFormGroup.patchValue(this.selectedItem);
+    
+    // Reset form and patch with current item values
+    this.itemDetailsFormGroup.reset();
+    this.itemDetailsFormGroup.patchValue({
+      id: item.id,
+      listId: item.listId,
+      priority: item.priority,
+      note: item.note,
+      tags: item.todoItemTagsList?.map(tag => tag.tagId) || []
+    });
 
     this.itemDetailsModalRef = this.modalService.show(template);
     this.itemDetailsModalRef.onHidden.subscribe(() => {
@@ -181,6 +209,7 @@ export class TodoComponent implements OnInit {
     } as TodoItemDto;
 
     this.selectedList.items.push(item);
+    this.filteredItems.push(item);
     const index = this.selectedList.items.length - 1;
     this.editItem(item, 'itemTitle' + index);
   }
@@ -262,4 +291,56 @@ export class TodoComponent implements OnInit {
     this.deleteCountDown = 0;
     this.deleting = false;
   }
+
+  filterItems(): void {
+    if (!this.selectedList) {
+       this.filteredItems = [];
+       return;
+    }
+
+    this.filteredItems = this.selectedList.items.filter(item => {
+      const matchesSearch = !this.searchQuery || 
+        item.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        (item.note && item.note.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      
+      const matchesTags = !this.selectedTags?.length || 
+        (item.todoItemTagsList && item.todoItemTagsList.some(tag => this.selectedTags.includes(tag.tagId)));
+
+      return matchesSearch && matchesTags;
+    });
+  }
+
+  clearTagFilter(): void {
+    this.selectedTags = [];
+    this.filterItems();
+  }
+
+  showNewTagInput(): void {
+    this.showTagInput = true;
+  }
+
+  saveNewTag(): void {
+    if (this.newTagName.trim()) {
+      const command = new CreateTagsCommand({ name: this.newTagName.trim() });
+      this.tagsClient.createTag(command).subscribe(
+        (id) => {
+          const newTag = {
+            id: id,
+            name: this.newTagName.trim()
+          } as TagDto;
+          this.tags.push(newTag);
+          this.newTagName = '';
+          this.showTagInput = false;
+        },
+        error => console.error(error)
+      );
+    }
+  }
+
+  cancelNewTag(): void {
+    this.newTagName = '';
+    this.showTagInput = false;
+  }
+}
+
 }
