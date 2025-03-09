@@ -87,5 +87,23 @@ public class ApplicationDbContextInitialiser
 
             await _context.SaveChangesAsync();
         }
+
+        // Default data
+        // Seed, if necessary
+        if (!_context.Tags.Any())
+        {
+            await _context.Tags.AddRangeAsync(new List<Tags>
+            {
+                new() {Name = "Business" },
+                new() {Name = "Sport" },
+                new() {Name = "Meeting" },
+                new() {Name = "Dinner" },
+                new() {Name = "Reading" },
+                new() {Name = "Chilling" }
+            });
+
+            await _context.SaveChangesAsync();
+        }
+         
     }
 }

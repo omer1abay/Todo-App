@@ -33,7 +33,14 @@ public class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, TodosVm>
                 .AsNoTracking()
                 .ProjectTo<TodoListDto>(_mapper.ConfigurationProvider)
                 .OrderBy(t => t.Title)
+                .ToListAsync(cancellationToken),
+
+            Tags = await _context.Tags
+                .AsNoTracking()
+                .ProjectTo<TagDto>(_mapper.ConfigurationProvider)
+                .OrderBy(t => t.Name)
                 .ToListAsync(cancellationToken)
+
         };
     }
 }
