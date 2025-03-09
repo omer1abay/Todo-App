@@ -494,6 +494,10 @@
           "title": {
             "type": "string",
             "nullable": true
+          },
+          "backgroundColor": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -511,6 +515,9 @@
           },
           "done": {
             "type": "boolean"
+          },
+          "backgroundColor": {
+            "type": "string"
           }
         }
       },
