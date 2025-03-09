@@ -176,7 +176,8 @@ export class TodoComponent implements OnInit {
       listId: this.selectedList.id,
       priority: this.priorityLevels[0].value,
       title: '',
-      done: false
+      done: false,
+      backgroundColor: ''
     } as TodoItemDto;
 
     this.selectedList.items.push(item);
