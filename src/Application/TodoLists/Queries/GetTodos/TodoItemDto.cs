@@ -26,6 +26,8 @@ public class TodoItemDto : IMapFrom<Entity.TodoItem>
 
     public string? BackgroundColor { get; set; }
 
+    public DateTime? Reminder{ get; set; }
+
     public IList<Entity.TodoItemTags> TodoItemTagsList { get; set; }
 
     public void Mapping(Profile profile)

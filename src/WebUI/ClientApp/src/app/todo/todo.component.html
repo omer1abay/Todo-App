@@ -157,6 +157,10 @@
         <label for="note">Note</label>
         <textarea id="note" class="form-control" rows="4" formControlName="note"></textarea>
       </div>
+      <div class="form-group">
+        <label for="reminder">Reminder</label>
+        <input type="datetime-local" id="reminder" class="form-control" formControlName="reminder">
+      </div>
     </form>
     <div *ngIf="debug">
       <pre>{{ itemDetailsFormGroup.value | json }}</pre>

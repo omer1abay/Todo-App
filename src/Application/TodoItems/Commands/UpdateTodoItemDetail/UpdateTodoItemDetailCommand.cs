@@ -18,6 +18,8 @@ public record UpdateTodoItemDetailCommand : IRequest
     public string? Note { get; init; }
 
     public List<int> Tags { get; init; } = new();
+
+    public DateTime? Reminder { get; init; }
 }
 
 public class UpdateTodoItemDetailCommandHandler : IRequestHandler<UpdateTodoItemDetailCommand>
@@ -53,6 +55,7 @@ public class UpdateTodoItemDetailCommandHandler : IRequestHandler<UpdateTodoItem
         entity.ListId = request.ListId;
         entity.Priority = request.Priority;
         entity.Note = request.Note;
+        entity.Reminder = request.Reminder;
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -546,6 +546,11 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          "reminder": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -656,6 +661,11 @@
           },
           "backgroundColor": {
             "type": "string",
+            "nullable": true
+          },
+          "reminder": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           },
           "todoItemTagsList": {
