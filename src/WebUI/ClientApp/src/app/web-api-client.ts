@@ -970,6 +970,7 @@ export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand
     priority?: PriorityLevel;
     note?: string | undefined;
     tags?: number[];
+    reminder?: Date | undefined;
 
     constructor(data?: IUpdateTodoItemDetailCommand) {
         if (data) {
@@ -991,6 +992,7 @@ export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand
                 for (let item of _data["tags"])
                     this.tags!.push(item);
             }
+            this.reminder = _data["reminder"] ? new Date(_data["reminder"].toString()) : <any>undefined;
         }
     }
 
@@ -1012,6 +1014,7 @@ export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand
             for (let item of this.tags)
                 data["tags"].push(item);
         }
+        data["reminder"] = this.reminder ? this.reminder : <any>undefined;
         return data;
     }
 }
@@ -1022,6 +1025,7 @@ export interface IUpdateTodoItemDetailCommand {
     priority?: PriorityLevel;
     note?: string | undefined;
     tags?: number[];
+    reminder?: Date | undefined;
 }
 
 export enum PriorityLevel {
@@ -1203,6 +1207,7 @@ export class TodoItemDto implements ITodoItemDto {
     priority?: number;
     note?: string | undefined;
     backgroundColor?: string | undefined;
+    reminder?: Date | undefined;
     todoItemTagsList?: TodoItemTags[];
 
     constructor(data?: ITodoItemDto) {
@@ -1223,6 +1228,7 @@ export class TodoItemDto implements ITodoItemDto {
             this.priority = _data["priority"];
             this.note = _data["note"];
             this.backgroundColor = _data["backgroundColor"];
+            this.reminder = _data["reminder"] ? new Date(_data["reminder"].toString()+'Z') : <any>undefined;
             if (Array.isArray(_data["todoItemTagsList"])) {
                 this.todoItemTagsList = [] as any;
                 for (let item of _data["todoItemTagsList"])
@@ -1247,6 +1253,7 @@ export class TodoItemDto implements ITodoItemDto {
         data["priority"] = this.priority;
         data["note"] = this.note;
         data["backgroundColor"] = this.backgroundColor;
+        data["reminder"] = this.reminder;
         if (Array.isArray(this.todoItemTagsList)) {
             data["todoItemTagsList"] = [];
             for (let item of this.todoItemTagsList)
@@ -1264,6 +1271,7 @@ export interface ITodoItemDto {
     priority?: number;
     note?: string | undefined;
     backgroundColor?: string | undefined;
+    reminder?: Date | undefined;
     todoItemTagsList?: TodoItemTags[];
 }
 

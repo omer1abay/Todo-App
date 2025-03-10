@@ -41,7 +41,8 @@ export class TodoComponent implements OnInit {
     listId: [null],
     priority: [''],
     note: [''],
-    tags: [[]]
+    tags: [[]],
+    reminder: [null]
   });
 
 
@@ -59,13 +60,69 @@ export class TodoComponent implements OnInit {
         this.lists = result.lists;
         this.priorityLevels = result.priorityLevels;
         this.tags = result.tags;
-        console.log(this.lists);
         if (this.lists.length) {
           this.selectList(this.lists[1]);
+        }
+
+        // Request notification permission immediately
+        if ('Notification' in window) {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              this.setupReminders();
+            }
+          });
         }
       },
       error => console.error(error)
     );
+  }
+
+  private setupReminders(): void {
+    // Clear existing timeouts first
+    const existingTimeouts = JSON.parse(sessionStorage.getItem('reminderTimeouts') || '{}');
+    Object.values(existingTimeouts).forEach((timeoutId: any) => {
+      clearTimeout(timeoutId);
+    });
+    sessionStorage.removeItem('reminderTimeouts');
+
+    // Get stored reminders and set up new notifications
+    const storedReminders = JSON.parse(localStorage.getItem('todoReminders') || '[]');
+    const now = new Date().getTime();
+    const newTimeouts = {};
+
+    storedReminders.forEach(reminder => {
+      if (reminder.time > now) {
+        const timeoutId = setTimeout(() => {
+          // Create notification
+          const notification = new Notification('Todo Reminder', {
+            body: `Reminder for: ${reminder.title}`,
+            icon: '/favicon.ico',
+            requireInteraction: true
+          });
+
+          // Handle notification click
+          notification.onclick = () => {
+            window.focus();
+            notification.close();
+          };
+
+          // Remove the reminder from storage
+          const currentReminders = JSON.parse(localStorage.getItem('todoReminders') || '[]');
+          const updatedReminders = currentReminders.filter(r => r.id !== reminder.id);
+          localStorage.setItem('todoReminders', JSON.stringify(updatedReminders));
+
+          // Clear the timeout reference
+          const timeouts = JSON.parse(sessionStorage.getItem('reminderTimeouts') || '{}');
+          delete timeouts[reminder.id];
+          sessionStorage.setItem('reminderTimeouts', JSON.stringify(timeouts));
+        }, reminder.time - now);
+
+        newTimeouts[reminder.id] = timeoutId;
+      }
+    });
+
+    // Store new timeouts
+    sessionStorage.setItem('reminderTimeouts', JSON.stringify(newTimeouts));
   }
 
   // Lists
@@ -166,17 +223,44 @@ export class TodoComponent implements OnInit {
       listId: item.listId,
       priority: item.priority,
       note: item.note,
-      tags: item.todoItemTagsList?.map(tag => tag.tagId) || []
+      tags: item.todoItemTagsList?.map(tag => tag.tagId) || [],
+      reminder: item.reminder ? new Date(item.reminder).toISOString().slice(0, 16) : null
     });
 
     this.itemDetailsModalRef = this.modalService.show(template);
     this.itemDetailsModalRef.onHidden.subscribe(() => {
         this.stopDeleteCountDown();
     });
+
+    // Set up reminder notification if exists
+    if (item.reminder) {
+      const reminderTime = new Date(item.reminder).getTime();
+      const now = new Date().getTime();
+      if (reminderTime > now) {
+        // Store reminder in localStorage
+        const reminder = {
+          id: item.id,
+          title: item.title,
+          time: reminderTime
+        };
+        const storedReminders = JSON.parse(localStorage.getItem('todoReminders') || '[]');
+        // Remove any existing reminder for this item
+        const filteredReminders = storedReminders.filter(r => r.id !== item.id);
+        filteredReminders.push(reminder);
+        localStorage.setItem('todoReminders', JSON.stringify(filteredReminders));
+
+        // Set up the notification
+        if (Notification.permission === 'granted') {
+          this.setupReminders(); // Refresh all reminders
+        }
+      }
+    }
   }
 
   updateItemDetails(): void {
-    const item = new UpdateTodoItemDetailCommand(this.itemDetailsFormGroup.value);
+    const formValue = this.itemDetailsFormGroup.value;
+    
+    const item = new UpdateTodoItemDetailCommand(formValue);
     this.itemsClient.updateItemDetails(this.selectedItem.id, item).subscribe(
       () => {
         if (this.selectedItem.listId !== item.listId) {
@@ -190,21 +274,50 @@ export class TodoComponent implements OnInit {
           this.lists[listIndex].items.push(this.selectedItem);
         }
 
-        // Update the selected item's properties including tags
+        // Update the selected item's properties including reminder
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
+        this.selectedItem.reminder = item.reminder;
         this.selectedItem.todoItemTagsList = item.tags?.map(tagId => ({
           tagId: tagId,
           todoItemId: this.selectedItem.id
         } as TodoItemTags)) || [];
 
+        // Handle reminder updates
+        if (item.reminder) {
+          const reminderTime = new Date(item.reminder).getTime();
+          const now = new Date().getTime();
+          if (reminderTime > now) {
+            const reminder = {
+              id: this.selectedItem.id,
+              title: this.selectedItem.title,
+              time: reminderTime
+            };
+            const storedReminders = JSON.parse(localStorage.getItem('todoReminders') || '[]');
+            const filteredReminders = storedReminders.filter(r => r.id !== this.selectedItem.id);
+            filteredReminders.push(reminder);
+            localStorage.setItem('todoReminders', JSON.stringify(filteredReminders));
+
+            if (Notification.permission === 'granted') {
+              this.setupReminders();
+            }
+          }
+        } else {
+          // Remove any existing reminder for this item
+          const storedReminders = JSON.parse(localStorage.getItem('todoReminders') || '[]');
+          const filteredReminders = storedReminders.filter(r => r.id !== this.selectedItem.id);
+          localStorage.setItem('todoReminders', JSON.stringify(filteredReminders));
+          this.setupReminders();
+        }
+
         // Update the item in both lists and filtered items
         const itemInList = this.selectedList.items.find(i => i.id === this.selectedItem.id);
         if (itemInList) {
           itemInList.todoItemTagsList = this.selectedItem.todoItemTagsList;
+          itemInList.reminder = this.selectedItem.reminder;
         }
 
-        // Refresh the filtered items to reflect tag changes
+        // Refresh the filtered items to reflect changes
         this.filterItems();
 
         this.itemDetailsModalRef.hide();

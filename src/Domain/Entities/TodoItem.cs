@@ -14,8 +14,6 @@ public class TodoItem : BaseAuditableEntity
 
     public string? BackgroundColor { get; set; } = "#FFFFFF";
 
-    //public bool IsActive { get; set; } = true;
-
     private bool _done;
     public bool Done
     {
