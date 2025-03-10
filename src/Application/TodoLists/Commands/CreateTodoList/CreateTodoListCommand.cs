@@ -20,6 +20,12 @@ public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListComman
 
     public async Task<int> Handle(CreateTodoListCommand request, CancellationToken cancellationToken)
     {
+
+        if (string.IsNullOrEmpty(request.Title))
+        {
+            throw new ArgumentNullException();
+        }
+
         var entity = new TodoList();
 
         entity.Title = request.Title;

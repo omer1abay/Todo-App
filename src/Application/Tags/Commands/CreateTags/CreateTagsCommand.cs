@@ -13,6 +13,12 @@ public class CreateTagsCommandHandler : IRequestHandler<CreateTagsCommand, int>
     }
     public async Task<int> Handle(CreateTagsCommand request, CancellationToken cancellationToken)
     {
+
+        if (request.name == null)
+        {
+            throw new ArgumentNullException();
+        }
+
         var insertedData = new Domain.Entities.Tags() { Name = request.name };
         await _context.Tags.AddAsync(insertedData);
         await _context.SaveChangesAsync(cancellationToken);

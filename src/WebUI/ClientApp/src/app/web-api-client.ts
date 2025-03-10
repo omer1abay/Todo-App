@@ -1253,7 +1253,7 @@ export class TodoItemDto implements ITodoItemDto {
         data["priority"] = this.priority;
         data["note"] = this.note;
         data["backgroundColor"] = this.backgroundColor;
-        data["reminder"] = this.reminder;
+      data["reminder"] = this.reminder;
         if (Array.isArray(this.todoItemTagsList)) {
             data["todoItemTagsList"] = [];
             for (let item of this.todoItemTagsList)
